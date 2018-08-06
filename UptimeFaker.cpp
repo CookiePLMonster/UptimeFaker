@@ -15,6 +15,11 @@ int64_t AddedTimeInDays;
 int64_t AddedTimeInMS;
 int64_t AddedTimeInQPCTicks;
 
+static bool IsFunctionHooked( LPCWSTR dllName, LPCWSTR functionName )
+{
+	return GetPrivateProfileIntW( dllName, functionName, 0, L".\\UptimeFaker.ini" ) != 0;
+}
+
 namespace Kernel32
 {
 	HMODULE hModule;
@@ -46,9 +51,9 @@ namespace Kernel32
 	{
 		if ( GetModuleHandleExW( 0, L"kernel32", &hModule ) )
 		{
-			OrgQueryPerformanceCounter = (decltype(OrgQueryPerformanceCounter))GetProcAddress( hModule, "QueryPerformanceCounter" );
-			OrgGetTickCount = (decltype(OrgGetTickCount))GetProcAddress( hModule, "GetTickCount" );
-			OrgGetTickCount64 = (decltype(OrgGetTickCount64))GetProcAddress( hModule, "GetTickCount64" );
+			if ( IsFunctionHooked(L"kernel32", L"QueryPerformanceCounter") ) OrgQueryPerformanceCounter = (decltype(OrgQueryPerformanceCounter))GetProcAddress( hModule, "QueryPerformanceCounter" );
+			if ( IsFunctionHooked(L"kernel32", L"GetTickCount") ) OrgGetTickCount = (decltype(OrgGetTickCount))GetProcAddress( hModule, "GetTickCount" );
+			if ( IsFunctionHooked(L"kernel32", L"GetTickCount64") ) OrgGetTickCount64 = (decltype(OrgGetTickCount64))GetProcAddress( hModule, "GetTickCount64" );
 
 			DetourAttach( &(PVOID&)OrgQueryPerformanceCounter, QueryPerformanceCounter );
 			DetourAttach( &(PVOID&)OrgGetTickCount, GetTickCount );
@@ -74,8 +79,7 @@ namespace Kernel32
 
 void GetFakeTimeValues()
 {
-	// TODO: Customize
-	AddedTimeInDays = 365;
+	AddedTimeInDays = static_cast<signed int>(GetPrivateProfileIntW( L"AddedUptime", L"AddUptimeDays", 0, L".\\UptimeFaker.ini" ));
 
 	// Calculate helper values
 	AddedTimeInMS = AddedTimeInDays * 24 * 60 * 60 * 1000;
