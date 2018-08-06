@@ -8,9 +8,9 @@ BOOL DetachFunctions();
 
 void GetFakeTimeValues();
 
-BOOL APIENTRY DllMain( HMODULE hModule,
+BOOL APIENTRY DllMain( HMODULE /*hModule*/,
                        DWORD  ul_reason_for_call,
-                       LPVOID lpReserved
+                       LPVOID /*lpReserved*/
                      )
 {
 	if (DetourIsHelperProcess()) {

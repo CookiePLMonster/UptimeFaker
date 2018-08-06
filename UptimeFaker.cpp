@@ -5,7 +5,11 @@
 #include "Detours/detours.h"
 #include <cstdint>
 
+#ifdef _WIN64
+#pragma comment(lib, "detours_x64.lib")
+#else
 #pragma comment(lib, "detours.lib")
+#endif
 
 int64_t AddedTimeInDays;
 int64_t AddedTimeInMS;
