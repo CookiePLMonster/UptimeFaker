@@ -49,7 +49,8 @@ namespace Kernel32
 
 	void AttachModule()
 	{
-		if ( GetModuleHandleExW( 0, L"kernel32", &hModule ) )
+		hModule = LoadLibraryW( L"kernel32" );
+		if ( hModule != nullptr )
 		{
 			if ( IsFunctionHooked(L"kernel32", L"QueryPerformanceCounter") ) OrgQueryPerformanceCounter = (decltype(OrgQueryPerformanceCounter))GetProcAddress( hModule, "QueryPerformanceCounter" );
 			if ( IsFunctionHooked(L"kernel32", L"GetTickCount") ) OrgGetTickCount = (decltype(OrgGetTickCount))GetProcAddress( hModule, "GetTickCount" );
@@ -103,7 +104,8 @@ namespace Winmm
 
 	void AttachModule()
 	{
-		if ( GetModuleHandleExW( 0, L"winmm", &hModule ) )
+		hModule = LoadLibraryW( L"winmm" );
+		if ( hModule != nullptr )
 		{
 			if ( IsFunctionHooked(L"winmm", L"timeGetTime") ) OrgtimeGetTime = (decltype(OrgtimeGetTime))GetProcAddress( hModule, "timeGetTime" );
 			if ( IsFunctionHooked(L"winmm", L"timeGetSystemTime") ) OrgtimeGetSystemTime = (decltype(OrgtimeGetSystemTime))GetProcAddress( hModule, "timeGetSystemTime" );
