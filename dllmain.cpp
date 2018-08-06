@@ -20,6 +20,8 @@ BOOL APIENTRY DllMain( HMODULE /*hModule*/,
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
+		DetourRestoreAfterWith();
+
 		GetFakeTimeValues();
 		return AttachFunctions();
     case DLL_PROCESS_DETACH:
