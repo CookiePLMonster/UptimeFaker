@@ -77,6 +77,57 @@ namespace Kernel32
 	}
 }
 
+namespace Winmm
+{
+	HMODULE hModule;
+
+	decltype(::timeGetTime)* OrgtimeGetTime;
+	DWORD WINAPI timeGetTime()
+	{
+		return static_cast<DWORD>(OrgtimeGetTime() + AddedTimeInMS);
+	}
+
+	decltype(::timeGetSystemTime)* OrgtimeGetSystemTime;
+	MMRESULT WINAPI timeGetSystemTime(LPMMTIME pmmt,UINT cbmmt)
+	{
+		MMRESULT result = OrgtimeGetSystemTime(pmmt, cbmmt);
+		if ( result == TIMERR_NOERROR )
+		{
+			if ( cbmmt == sizeof(MMTIME) && pmmt->wType == TIME_MS )
+			{
+				pmmt->u.ms += static_cast<DWORD>(AddedTimeInMS);
+			}
+		}
+		return result;
+	}
+
+	void AttachModule()
+	{
+		if ( GetModuleHandleExW( 0, L"winmm", &hModule ) )
+		{
+			if ( IsFunctionHooked(L"winmm", L"timeGetTime") ) OrgtimeGetTime = (decltype(OrgtimeGetTime))GetProcAddress( hModule, "timeGetTime" );
+			if ( IsFunctionHooked(L"winmm", L"timeGetSystemTime") ) OrgtimeGetSystemTime = (decltype(OrgtimeGetSystemTime))GetProcAddress( hModule, "timeGetSystemTime" );
+
+			DetourAttach( &(PVOID&)OrgtimeGetTime, timeGetTime );
+			DetourAttach( &(PVOID&)OrgtimeGetSystemTime, timeGetSystemTime );
+		}
+	}
+
+	void DetachModule()
+	{
+		DetourDetach( &(PVOID&)OrgtimeGetTime, timeGetTime );
+		DetourDetach( &(PVOID&)OrgtimeGetSystemTime, timeGetSystemTime );
+	}
+
+	void Free()
+	{
+		if ( hModule != nullptr )
+		{
+			FreeLibrary(hModule);
+		}
+	}
+}
+
 void GetFakeTimeValues()
 {
 	AddedTimeInDays = static_cast<signed int>(GetPrivateProfileIntW( L"AddedUptime", L"AddUptimeDays", 0, L".\\UptimeFaker.ini" ));
@@ -96,6 +147,7 @@ BOOL AttachFunctions()
 	DetourUpdateThread(GetCurrentThread());
 
 	Kernel32::AttachModule();
+	Winmm::AttachModule();
 
 	DetourTransactionCommit();
 
@@ -107,11 +159,13 @@ BOOL DetachFunctions()
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
 
+	Winmm::DetachModule();
 	Kernel32::DetachModule();
 
 	DetourTransactionCommit();
 
 	Kernel32::Free();
+	Winmm::Free();
 
 	return TRUE;
 }
