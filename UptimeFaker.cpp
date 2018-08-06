@@ -30,19 +30,37 @@ namespace Kernel32
 		return result;
 	}
 
+	decltype(::GetTickCount)* OrgGetTickCount;
+	DWORD WINAPI GetTickCount()
+	{
+		return static_cast<DWORD>(OrgGetTickCount() + AddedTimeInMS);
+	}
+
+	decltype(::GetTickCount64)* OrgGetTickCount64;
+	ULONGLONG WINAPI GetTickCount64()
+	{
+		return OrgGetTickCount64() + AddedTimeInMS;
+	}
+
 	void AttachModule()
 	{
 		if ( GetModuleHandleExW( 0, L"kernel32", &hModule ) )
 		{
 			OrgQueryPerformanceCounter = (decltype(OrgQueryPerformanceCounter))GetProcAddress( hModule, "QueryPerformanceCounter" );
+			OrgGetTickCount = (decltype(OrgGetTickCount))GetProcAddress( hModule, "GetTickCount" );
+			OrgGetTickCount64 = (decltype(OrgGetTickCount64))GetProcAddress( hModule, "GetTickCount64" );
 
 			DetourAttach( &(PVOID&)OrgQueryPerformanceCounter, QueryPerformanceCounter );
+			DetourAttach( &(PVOID&)OrgGetTickCount, GetTickCount );
+			DetourAttach( &(PVOID&)OrgGetTickCount64, GetTickCount64 );
 		}
 	}
 
 	void DetachModule()
 	{
 		DetourDetach( &(PVOID&)OrgQueryPerformanceCounter, QueryPerformanceCounter );
+		DetourDetach( &(PVOID&)OrgGetTickCount, GetTickCount );
+		DetourDetach( &(PVOID&)OrgGetTickCount64, GetTickCount64 );
 	}
 
 	void Free()
