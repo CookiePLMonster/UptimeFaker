@@ -11,7 +11,6 @@
 #pragma comment(lib, "detours.lib")
 #endif
 
-int64_t AddedTimeInDays;
 int64_t AddedTimeInMS;
 int64_t AddedTimeInQPCTicks;
 
@@ -132,7 +131,7 @@ namespace Winmm
 
 void GetFakeTimeValues()
 {
-	AddedTimeInDays = static_cast<signed int>(GetPrivateProfileIntW( L"AddedUptime", L"AddUptimeDays", 0, L".\\UptimeFaker.ini" ));
+	const int64_t AddedTimeInDays = static_cast<signed int>(GetPrivateProfileIntW( L"AddedUptime", L"AddUptimeDays", 0, L".\\UptimeFaker.ini" ));
 
 	// Calculate helper values
 	AddedTimeInMS = AddedTimeInDays * 24 * 60 * 60 * 1000;
