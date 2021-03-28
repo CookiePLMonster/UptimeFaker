@@ -139,7 +139,17 @@ void GetFakeTimeValues()
 
 	LARGE_INTEGER QPCFreq;
 	::QueryPerformanceFrequency( &QPCFreq );
-	AddedTimeInQPCTicks = AddedTimeInDays * 24 * 60 * 60 * QPCFreq.QuadPart; 
+	AddedTimeInQPCTicks = AddedTimeInDays * 24 * 60 * 60 * QPCFreq.QuadPart;
+
+	// Offset timers by PC uptime if ProcessTime option is enabled
+	if ( GetPrivateProfileIntW( L"AddedUptime", L"ProcessTime", 0, L".\\UptimeFaker.ini" ) != 0 )
+	{
+		LARGE_INTEGER QPCUptime;
+		::QueryPerformanceCounter( &QPCUptime );
+		AddedTimeInQPCTicks -= QPCUptime.QuadPart;
+
+		AddedTimeInMS -= ::GetTickCount64();
+	}
 }
 
 
