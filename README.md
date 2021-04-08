@@ -12,6 +12,9 @@ Turns out, older software often cannot handle high uptimes.
 Much to my surprise, Application Verifier did not have any options to help detecting such issues by faking high uptime,
 I decided to create this plugin.
 
+To allow using Uptime Faker as a general purpose fix for games and/or applications not handling high uptime gracefully,
+v1.1 added a `ProcessTime` INI option, making timers count time from the process creation instead of the last reboot.
+
 ## Usage
 This plugin is a Detours plugin. Therefore, it can be injected into the process with
 [DetourCreateProcessWithDlls](https://github.com/Microsoft/Detours/wiki/DetourCreateProcessWithDlls)
@@ -19,7 +22,7 @@ or by any other means.
 It is also possible to inject UptimeFaker by using [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases),
 but file extension needs to be renamed to ASI first.
 
-Hooked WinAPI functions and the amount of uptime added can be configured with a provided `UptimeFaker.ini` file.
+Hooked WinAPI functions, the amount of uptime added and a process time mode can be configured with a provided `UptimeFaker.ini` file.
 
 ## Supported functions
 * From **kernel32.dll**:
